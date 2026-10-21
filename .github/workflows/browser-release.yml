@@ -28,11 +28,12 @@ on:
   workflow_dispatch:
     inputs:
       platforms:
-        description: "linux (x86_64) or all (linux, windows, macos; release.yml's matrix)"
+        description: "linux (x86_64), all (release.yml's matrix), or desktop (all but windows i686)"
         type: choice
         options:
           - linux
           - all
+          - desktop
         default: linux
       runner:
         description: "Compile runner. ubuntu-24.04, or a self-hosted label"
@@ -101,8 +102,13 @@ jobs:
               # release.yml's matrix, including the same unsupported exclusions.
               matrix='{"include":[{"target":"linux","arch":"x86_64"},{"target":"linux","arch":"arm64"},{"target":"windows","arch":"x86_64"},{"target":"windows","arch":"i686"},{"target":"macos","arch":"x86_64"},{"target":"macos","arch":"arm64"}]}'
               ;;
+            desktop)
+              # Every platform team-browser pins; windows i686 is skipped because
+              # it exceeds the 330-minute job limit on ubuntu-24.04.
+              matrix='{"include":[{"target":"linux","arch":"x86_64"},{"target":"linux","arch":"arm64"},{"target":"windows","arch":"x86_64"},{"target":"macos","arch":"x86_64"},{"target":"macos","arch":"arm64"}]}'
+              ;;
             *)
-              echo "::error::platforms must be linux or all"
+              echo "::error::platforms must be linux, all or desktop"
               exit 1
               ;;
           esac
